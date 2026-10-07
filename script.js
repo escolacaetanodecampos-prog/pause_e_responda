@@ -94,7 +94,7 @@ function answer(i) {
     semana: x[0],
     questao: indice + 1,
     resposta: String.fromCharCode(65 + i),
-    correta: ok ? "SIM" : "NAO",
+    correta: ok ? "true" : "false",
     totalQuestoes: QUIZZES[aluno.disciplina].length,
     acertos,
     percentual: Math.round(acertos / QUIZZES[aluno.disciplina].length * 100),
