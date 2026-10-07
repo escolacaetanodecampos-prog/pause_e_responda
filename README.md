@@ -8,3 +8,6 @@ O estudante seleciona nome, série, turma e disciplina e responde a questões pr
 ## Disciplinas
 - Carreira e Competências para o Mercado de Trabalho em Administração
 - Introdução a Administração, Legislação e Pessoas
+
+
+<!-- GitHub Pages deployment check -->
