@@ -159,20 +159,88 @@ function entrarProfessor() {
 }
 
 function painelProfessor() {
-  const resultadosUrl = APPS_SCRIPT_URL + "?acao=resultados&codigo=" + encodeURIComponent(CODIGO_PROFESSOR);
   document.querySelector("#app").innerHTML = `
     <section class="card teacher-panel">
       <h1>📊 Painel do Professor</h1>
       <p>Os resultados são registrados automaticamente na planilha <strong>pauseeresponda</strong>.</p>
       <div class="teacher-links">
         <a class="teacher-link" href="${PLANILHA_URL}" target="_blank" rel="noopener">📊 Abrir planilha</a>
-        <a class="teacher-link" href="${resultadosUrl}" target="_blank" rel="noopener">📋 Ver resultados registrados</a>
+        <button class="teacher-link" onclick="carregarResultados()">📋 Ver resultados registrados</button>
       </div>
-      <div class="teacher-note">
-        <strong>Como usar:</strong> abra a planilha para analisar, filtrar e ordenar os resultados por estudante, turma, disciplina ou data.
+      <div id="resultadosProfessor" class="resultados-professor">
+        <div class="teacher-note">Clique em <strong>Ver resultados registrados</strong> para carregar os dados.</div>
       </div>
       <button class="secondary" onclick="home()">Sair do painel</button>
     </section>`;
+}
+
+function carregarResultados() {
+  const box = document.querySelector("#resultadosProfessor");
+  if (!box) return;
+  box.innerHTML = '<div class="teacher-note">⏳ Carregando resultados...</div>';
+  const callback = "receberResultados_" + Date.now();
+  window[callback] = function(data) {
+    try {
+      delete window[callback];
+      if (!data || !data.ok) {
+        box.innerHTML = '<div class="feedback no">❌ Não foi possível carregar os resultados.</div>';
+        return;
+      }
+      renderizarResultados(data.resultados || []);
+    } catch (e) {
+      box.innerHTML = '<div class="feedback no">❌ Erro ao montar o painel.</div>';
+    }
+  };
+  const script = document.createElement("script");
+  script.src = APPS_SCRIPT_URL + "?acao=resultados&codigo=" + encodeURIComponent(CODIGO_PROFESSOR) + "&callback=" + encodeURIComponent(callback);
+  script.onerror = function() {
+    delete window[callback];
+    box.innerHTML = '<div class="feedback no">❌ Falha de comunicação com o Google Apps Script.</div>';
+  };
+  document.body.appendChild(script);
+}
+
+function esc(v) {
+  return String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function renderizarResultados(rows) {
+  const box = document.querySelector("#resultadosProfessor");
+  if (!box) return;
+  if (!rows.length) {
+    box.innerHTML = '<div class="teacher-note">Nenhum resultado registrado ainda.</div>';
+    return;
+  }
+
+  const finais = rows.filter(r => r["Tipo"] === "FINAL");
+  const questoes = rows.filter(r => r["Tipo"] === "QUESTAO");
+  const alunos = new Set(rows.map(r => r["Nome"]).filter(Boolean)).size;
+  const tentativas = new Set(rows.map(r => r["Tentativa ID"]).filter(Boolean)).size;
+
+  const cards = finais.map(r => `
+    <div class="resultado-card">
+      <div class="resultado-top">
+        <strong>${esc(r["Nome"])}</strong>
+        <span class="resultado-percentual">${esc(r["Percentual"])}%</span>
+      </div>
+      <div class="resultado-meta">${esc(r["Série"])} • ${esc(r["Turma"])}</div>
+      <div class="resultado-disciplina">${esc(r["Disciplina"])}</div>
+      <div class="resultado-score"><strong>${esc(r["Acertos"])} / ${esc(r["Total Questões"])}</strong> acertos</div>
+      <div class="resultado-data">${esc(r["Data/Hora"])}</div>
+    </div>`).join("");
+
+  const fallback = rows.filter(r => r["Tipo"] !== "FINAL").reduce((acc,r) => acc, []);
+  box.innerHTML = `
+    <div class="resumo-resultados">
+      <div><strong>${alunos}</strong><span>Estudantes</span></div>
+      <div><strong>${tentativas}</strong><span>Tentativas</span></div>
+      <div><strong>${finais.length}</strong><span>Resultados finais</span></div>
+      <div><strong>${questoes.length}</strong><span>Respostas</span></div>
+    </div>
+    <div class="resultado-lista">
+      ${cards || '<div class="teacher-note">Ainda não há resultados finais. Há ' + questoes.length + ' respostas registradas.</div>'}
+    </div>
+  `;
 }
 
 home();
