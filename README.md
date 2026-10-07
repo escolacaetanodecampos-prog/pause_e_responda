@@ -14,3 +14,6 @@ O estudante seleciona nome, série, turma e disciplina e responde a questões pr
 
 
 <!-- deploy: Google Sheets + acesso professor -->
+
+
+<!-- redeploy: painel professor html 2026-10-07 -->
