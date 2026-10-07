@@ -11,3 +11,6 @@ O estudante seleciona nome, série, turma e disciplina e responde a questões pr
 
 
 <!-- GitHub Pages deployment check -->
+
+
+<!-- deploy: Google Sheets + acesso professor -->
