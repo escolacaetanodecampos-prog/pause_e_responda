@@ -161,7 +161,7 @@ function entrarProfessor() {
 function painelProfessor() {
   document.querySelector("#app").innerHTML = `
     <section class="card teacher-panel">
-      <h1>📊 Painel do Professor</h1>
+      <h1>📊 Painel do Professor</h1><div class="painel-versao">Painel 07/10/2026 • conexão automática</div>
       <p>Os resultados são registrados automaticamente na planilha <strong>pauseeresponda</strong>.</p>
       <div class="teacher-links">
         <a class="teacher-link" href="${PLANILHA_URL}" target="_blank" rel="noopener">📊 Abrir planilha</a>
@@ -178,7 +178,7 @@ function carregarResultados() {
   const box = document.querySelector("#resultadosProfessor");
   if (!box) return;
   box.innerHTML = '<div class="teacher-note">⏳ Carregando resultados...</div>';
-  const callback = "receberResultados_" + Date.now();
+  const callback = "receberResultados_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
   window[callback] = function(data) {
     try {
       delete window[callback];
@@ -192,9 +192,40 @@ function carregarResultados() {
     }
   };
   const script = document.createElement("script");
-  script.src = APPS_SCRIPT_URL + "?acao=resultados&codigo=" + encodeURIComponent(CODIGO_PROFESSOR) + "&callback=" + encodeURIComponent(callback);
+  script.async = true;
+  script.src = APPS_SCRIPT_URL + "?acao=resultados&codigo=" + encodeURIComponent(CODIGO_PROFESSOR) + "&callback=" + encodeURIComponent(callback) + "&_=" + Date.now();
+  let concluido = false;
+  const limpar = () => {
+    if (script.parentNode) script.parentNode.removeChild(script);
+    try { delete window[callback]; } catch(e) {}
+  };
+  const timer = setTimeout(() => {
+    if (concluido) return;
+    concluido = true;
+    limpar();
+    box.innerHTML = '<div class="feedback no">❌ O Google Apps Script não respondeu em tempo hábil. Verifique se a versão implantada está com acesso <strong>Qualquer pessoa</strong>.</div>';
+  }, 12000);
+  const originalCallback = window[callback];
+  window[callback] = function(data) {
+    if (concluido) return;
+    concluido = true;
+    clearTimeout(timer);
+    limpar();
+    try {
+      if (!data || !data.ok) {
+        box.innerHTML = '<div class="feedback no">❌ Não foi possível carregar os resultados.</div>';
+        return;
+      }
+      renderizarResultados(data.resultados || []);
+    } catch (e) {
+      box.innerHTML = '<div class="feedback no">❌ Erro ao montar o painel.</div>';
+    }
+  };
   script.onerror = function() {
-    delete window[callback];
+    if (concluido) return;
+    concluido = true;
+    clearTimeout(timer);
+    limpar();
     box.innerHTML = '<div class="feedback no">❌ Falha de comunicação com o Google Apps Script.</div>';
   };
   document.body.appendChild(script);
