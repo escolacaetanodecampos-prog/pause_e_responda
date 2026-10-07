@@ -10,3 +10,17 @@
 .teacher-link:hover{filter:brightness(1.05)}
 .teacher-note{padding:14px;border-radius:12px;background:#f7f3fb;margin:16px 0;line-height:1.5}
 @media(max-width:600px){.teacher-links{grid-template-columns:1fr}}
+
+.resultados-professor{margin-top:18px}
+.resumo-resultados{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+.resumo-resultados>div{padding:12px;border-radius:12px;background:#f7f3fb;text-align:center}
+.resumo-resultados strong{display:block;font-size:1.35rem}
+.resumo-resultados span{font-size:.82rem;opacity:.8}
+.resultado-lista{display:grid;gap:12px}
+.resultado-card{border:1px solid #e5dff0;border-radius:14px;padding:14px;background:#fff}
+.resultado-top{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.resultado-percentual{font-size:1.25rem;font-weight:800}
+.resultado-meta,.resultado-disciplina,.resultado-data{font-size:.86rem;margin-top:5px;opacity:.8}
+.resultado-disciplina{font-weight:600;opacity:1}
+.resultado-score{margin-top:10px;font-size:1rem}
+@media(max-width:600px){.resumo-resultados{grid-template-columns:repeat(2,1fr)}}
